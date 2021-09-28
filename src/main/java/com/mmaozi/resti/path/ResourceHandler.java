@@ -2,21 +2,22 @@ package com.mmaozi.resti.path;
 
 import com.mmaozi.resti.exception.MethodInvokeException;
 import com.mmaozi.resti.path.ParametrizedUri.MatchedParametrizedUri;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor(staticName = "of")
 public class ResourceHandler {
 
     private final Map<ParametrizedUri, ResourceHandler> subResourceHandler = new HashMap<>();
     private final Map<HttpMethod, List<ResourceMethodHandler>> httpMethodHandler = new HashMap<>();
 
     // dynamic binding resource class and function
-    private ResourceFunction resourceLocatorFunction;
+    private static ResourceLocatorFunction resourceLocatorFunction;
 
     public void addHttpMethodHandler(HttpMethod method, ResourceMethodHandler handler) {
         httpMethodHandler.computeIfAbsent(method, m -> new ArrayList<>()).add(handler);
@@ -36,11 +37,10 @@ public class ResourceHandler {
                 continue;
             }
 
-            Class<?> subResourceClass;
-
             ParseContext subResourceParseContext = ParseContext
-                    .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
+                .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
 
+            Class<?> subResourceClass;
             try {
                 subResourceClass = (Class<?>) resourceLocatorFunction.invoke(resourceClass, httpContext, subResourceParseContext);
             } catch (InvocationTargetException | IllegalAccessException e) {
@@ -51,9 +51,9 @@ public class ResourceHandler {
         }
 
         return httpMethodHandler.get(httpContext.getMethod()).stream()
-                                .map(handler -> handler.tryHandleUri(parseContext.getUri()))
-                                .filter(x -> x)
-                                .findFirst()
-                                .orElse(false);
+            .map(handler -> handler.tryHandleUri(parseContext.getUri()))
+            .filter(x -> x)
+            .findFirst()
+            .orElse(false);
     }
 }
