@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class ResourceLocatorHandler {
+public class ResourceHandler {
 
-    private final Map<ParametrizedUri, ResourceLocatorHandler> subResourceHandler = new HashMap<>();
+    private final Map<ParametrizedUri, ResourceHandler> subResourceHandler = new HashMap<>();
     private final Map<HttpMethod, List<ResourceMethodHandler>> httpMethodHandler = new HashMap<>();
 
     private ParametrizedFunction resourceLocatorFunction;
@@ -21,27 +21,28 @@ public class ResourceLocatorHandler {
         httpMethodHandler.computeIfAbsent(method, m -> new ArrayList<>()).add(handler);
     }
 
-    public void subResourceHandler(String regex, ResourceLocatorHandler handler) {
+    public void subResourceHandler(String regex, ResourceHandler handler) {
         subResourceHandler.put(ParametrizedUri.build(regex), handler);
     }
 
     public boolean handleUri(HttpMethod method, String uri, Class<?> resourceClass) {
 
-        for (Map.Entry<ParametrizedUri, ResourceLocatorHandler> entry : subResourceHandler.entrySet()) {
+        for (Map.Entry<ParametrizedUri, ResourceHandler> entry : subResourceHandler.entrySet()) {
             ParametrizedUri parametrizedUri = entry.getKey();
             MatchedParametrizedUri matchedUri = parametrizedUri.tryMatch(uri);
 
-            if (!Objects.isNull(matchedUri)) {
-
-                Class<?> subResourceClass;
-                try {
-                    subResourceClass = (Class<?>) resourceLocatorFunction.invoke(resourceClass, matchedUri.getParameters());
-                } catch (InvocationTargetException | IllegalAccessException e) {
-                    throw new MethodInvokeException("Invoke subresource locator method failed", e);
-                }
-
-                return subResourceHandler.get(parametrizedUri).handleUri(method, matchedUri.getRemainingUri(), subResourceClass);
+            if (Objects.isNull(matchedUri)) {
+                continue;
             }
+
+            Class<?> subResourceClass;
+            try {
+                subResourceClass = (Class<?>) resourceLocatorFunction.invoke(resourceClass, matchedUri.getParameters());
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new MethodInvokeException("Invoke subresource locator method failed", e);
+            }
+
+            return subResourceHandler.get(parametrizedUri).handleUri(method, matchedUri.getRemainingUri(), subResourceClass);
         }
 
         return httpMethodHandler.get(method).stream()
