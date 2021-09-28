@@ -17,7 +17,7 @@ public class ResourceHandler {
     private final Map<HttpMethod, List<ResourceMethodHandler>> httpMethodHandler = new HashMap<>();
 
     // dynamic binding resource class and function
-    private static ResourceLocatorFunction resourceLocatorFunction;
+    private final ResourceFunction resourceFunction;
 
     public void addHttpMethodHandler(HttpMethod method, ResourceMethodHandler handler) {
         httpMethodHandler.computeIfAbsent(method, m -> new ArrayList<>()).add(handler);
@@ -27,7 +27,7 @@ public class ResourceHandler {
         subResourceHandler.put(ParametrizedUri.build(regex), handler);
     }
 
-    public boolean handleUri(HttpContext httpContext, ParseContext parseContext, Class<?> resourceClass) {
+    public HandlerResponse handleUri(HttpContext httpContext, ParseContext parseContext, Class<?> resourceClass) {
 
         for (Map.Entry<ParametrizedUri, ResourceHandler> entry : subResourceHandler.entrySet()) {
             ParametrizedUri parametrizedUri = entry.getKey();
@@ -42,18 +42,20 @@ public class ResourceHandler {
 
             Class<?> subResourceClass;
             try {
-                subResourceClass = (Class<?>) resourceLocatorFunction.invoke(resourceClass, httpContext, subResourceParseContext);
+                subResourceClass = (Class<?>) resourceFunction
+                    .invoke(resourceClass, httpContext, subResourceParseContext);
             } catch (InvocationTargetException | IllegalAccessException e) {
                 throw new MethodInvokeException("Invoke subresource locator method failed", e);
             }
 
-            return subResourceHandler.get(parametrizedUri).handleUri(httpContext, subResourceParseContext, subResourceClass);
+            return subResourceHandler.get(parametrizedUri)
+                .handleUri(httpContext, subResourceParseContext, subResourceClass);
         }
 
         return httpMethodHandler.get(httpContext.getMethod()).stream()
-            .map(handler -> handler.tryHandleUri(parseContext.getUri()))
-            .filter(x -> x)
+            .map(handler -> handler.tryHandleUri(httpContext, parseContext, resourceClass))
+            .filter(HandlerResponse::isMatch)
             .findFirst()
-            .orElse(false);
+            .orElse(HandlerResponse.NOT_MATCH);
     }
 }

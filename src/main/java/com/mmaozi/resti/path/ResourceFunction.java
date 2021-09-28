@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-public class ResourceLocatorFunction {
+public class ResourceFunction {
 
     private final Method method;
 
@@ -19,7 +19,7 @@ public class ResourceLocatorFunction {
         .of(PathParamResolver.INSTANCE, QueryParamResolver.INSTANCE);
     private final List<BiFunction<HttpContext, ParseContext, Object>> valueExtractor = new ArrayList<>();
 
-    public ResourceLocatorFunction(Method method) {
+    public ResourceFunction(Method method) {
         this.method = method;
         Parameter[] parameters = method.getParameters();
 
