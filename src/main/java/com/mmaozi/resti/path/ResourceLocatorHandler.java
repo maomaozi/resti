@@ -1,7 +1,10 @@
 package com.mmaozi.resti.path;
 
+import com.mmaozi.resti.exception.MethodInvokeException;
 import com.mmaozi.resti.path.ParametrizedUri.MatchedParametrizedUri;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,27 +15,32 @@ public class ResourceLocatorHandler {
     private final Map<ParametrizedUri, ResourceLocatorHandler> subResourceHandler = new HashMap<>();
     private final Map<HttpMethod, List<ResourceMethodHandler>> httpMethodHandler = new HashMap<>();
 
-    public static void main(String[] args) {
-
-    }
+    private ParametrizedFunction resourceLocatorFunction;
 
     public void addHttpMethodHandler(HttpMethod method, ResourceMethodHandler handler) {
-
+        httpMethodHandler.computeIfAbsent(method, m -> new ArrayList<>()).add(handler);
     }
 
-    public void subResourceHandler(String regex, List<String> param) {
-
+    public void subResourceHandler(String regex, ResourceLocatorHandler handler) {
+        subResourceHandler.put(ParametrizedUri.build(regex), handler);
     }
 
-    public boolean handleUri(HttpMethod method, String uri) {
+    public boolean handleUri(HttpMethod method, String uri, Class<?> resourceClass) {
 
         for (Map.Entry<ParametrizedUri, ResourceLocatorHandler> entry : subResourceHandler.entrySet()) {
             ParametrizedUri parametrizedUri = entry.getKey();
-
             MatchedParametrizedUri matchedUri = parametrizedUri.tryMatch(uri);
 
             if (!Objects.isNull(matchedUri)) {
-                return handleSubResourceLocator(matchedUri);
+
+                Class<?> subResourceClass;
+                try {
+                    subResourceClass = (Class<?>) resourceLocatorFunction.invoke(resourceClass, matchedUri.getParameters());
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new MethodInvokeException("Invoke subresource locator method failed", e);
+                }
+
+                return subResourceHandler.get(parametrizedUri).handleUri(method, matchedUri.getRemainingUri(), subResourceClass);
             }
         }
 
@@ -41,9 +49,5 @@ public class ResourceLocatorHandler {
                                 .filter(x -> x)
                                 .findFirst()
                                 .orElse(false);
-    }
-
-    private boolean handleSubResourceLocator(MatchedParametrizedUri matchedUri) {
-        return true;
     }
 }
