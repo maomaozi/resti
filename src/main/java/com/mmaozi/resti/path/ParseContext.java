@@ -1,18 +1,19 @@
 package com.mmaozi.resti.path;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-import java.util.Map;
-
 import static java.util.Objects.nonNull;
 
+import java.util.Map;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
 @Data
-@AllArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(staticName = "of")
 public class ParseContext {
-    private ParseContext parentContext;
-    private String uri;
-    private Map<String, String> pathParams;
+
+    private final ParseContext parentContext;
+    private final String uri;
+    private final Map<String, String> pathParams;
+    private ParseContext childContext;
 
     public String findPathParam(String param) {
         ParseContext current = this;

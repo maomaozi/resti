@@ -3,6 +3,7 @@ package com.mmaozi.resti.example.resource;
 import com.mmaozi.resti.example.entity.Customer;
 import com.mmaozi.resti.example.service.CustomerService;
 import java.util.List;
+import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -12,8 +13,12 @@ import javax.ws.rs.PathParam;
 @Path("/customers")
 public class CustomersResource {
 
-    private CustomerService customerService;
+    private final CustomerService customerService;
 
+    @Inject
+    public CustomersResource(CustomerService customerService) {
+        this.customerService = customerService;
+    }
 
     @GET
     public List<Customer> getCustomers() {

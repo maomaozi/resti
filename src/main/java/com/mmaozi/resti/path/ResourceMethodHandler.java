@@ -13,7 +13,7 @@ public class ResourceMethodHandler {
     private final ResourceFunction resourceFunction;
 
 
-    public HandlerResponse tryHandleUri(HttpContext httpContext, ParseContext parseContext, Class<?> resourceClass) {
+    public HandlerResponse tryHandleUri(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
         MatchedParametrizedUri matchedUri = parametrizedUri.tryMatch(parseContext.getUri());
 
         if (Objects.isNull(matchedUri) || !matchedUri.getRemainingUri().equals("")) {
@@ -24,7 +24,7 @@ public class ResourceMethodHandler {
             .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
 
         try {
-            Object result = resourceFunction.invoke(resourceClass, httpContext, currentParseContext);
+            Object result = resourceFunction.invoke(resourceInstance, httpContext, currentParseContext);
             return HandlerResponse.of(true, result);
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new MethodInvokeException("Invoke resource method failed", e);

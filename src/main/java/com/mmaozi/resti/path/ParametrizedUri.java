@@ -1,10 +1,8 @@
 package com.mmaozi.resti.path;
 
-import com.mmaozi.resti.exception.IllegalUriException;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.mmaozi.resti.exception.IllegalUriException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,8 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE, staticName = "of")
@@ -31,13 +30,12 @@ public class ParametrizedUri {
         List<String> parameters = new ArrayList<>();
 
         String parsedUrl = Arrays.stream(rawUri.split("/"))
-                                 .filter(part -> !part.trim().equals(""))
-                                 .map(part -> URLDecoder.decode(part, UTF_8))
-                                 .peek(System.out::println)
-                                 .map(regexUrlMatcher::matcher)
-                                 .map(matcher -> parseRawUri(rawUri, parameters, matcher))
-                                 .map(part -> part.replaceAll("\\\\", "\\\\\\\\"))
-                                 .collect(Collectors.joining("/", "^", "$"));
+            .filter(part -> !part.trim().equals(""))
+            .map(part -> URLDecoder.decode(part, UTF_8))
+            .map(part -> part.replaceAll("\\\\", "\\\\\\\\"))
+            .map(regexUrlMatcher::matcher)
+            .map(matcher -> parseRawUri(rawUri, parameters, matcher))
+            .collect(Collectors.joining("/", "^/?", "/?"));
 
         return ParametrizedUri.of(Pattern.compile(parsedUrl), parameters);
     }

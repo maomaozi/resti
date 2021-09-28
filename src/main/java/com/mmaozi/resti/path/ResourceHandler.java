@@ -7,30 +7,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
-import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor(staticName = "of")
+@Getter
+@RequiredArgsConstructor
 public class ResourceHandler {
 
-    private final Map<ParametrizedUri, ResourceHandler> subResourceHandler = new HashMap<>();
+    private final Map<ParametrizedUri, ResourceFunction> subResourcesProvider = new HashMap<>();
     private final Map<HttpMethod, List<ResourceMethodHandler>> httpMethodHandler = new HashMap<>();
-
-    // dynamic binding resource class and function
-    private final ResourceFunction resourceFunction;
+    private final Class<?> resourceClass;
 
     public void addHttpMethodHandler(HttpMethod method, ResourceMethodHandler handler) {
         httpMethodHandler.computeIfAbsent(method, m -> new ArrayList<>()).add(handler);
     }
 
-    public void subResourceHandler(String regex, ResourceHandler handler) {
-        subResourceHandler.put(ParametrizedUri.build(regex), handler);
+    public void addSubResourcesProvider(ParametrizedUri parametrizedUri, ResourceFunction function) {
+        subResourcesProvider.put(parametrizedUri, function);
     }
 
-    public HandlerResponse handleUri(HttpContext httpContext, ParseContext parseContext, Class<?> resourceClass) {
+    public HandlerResponse handleUri(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
 
-        for (Map.Entry<ParametrizedUri, ResourceHandler> entry : subResourceHandler.entrySet()) {
+        for (Entry<ParametrizedUri, ResourceFunction> entry : subResourcesProvider.entrySet()) {
             ParametrizedUri parametrizedUri = entry.getKey();
+
             MatchedParametrizedUri matchedUri = parametrizedUri.tryMatch(parseContext.getUri());
 
             if (Objects.isNull(matchedUri)) {
@@ -39,21 +41,25 @@ public class ResourceHandler {
 
             ParseContext subResourceParseContext = ParseContext
                 .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
+            parseContext.setChildContext(subResourceParseContext);
 
-            Class<?> subResourceClass;
+            Object subResourceClass;
             try {
-                subResourceClass = (Class<?>) resourceFunction
-                    .invoke(resourceClass, httpContext, subResourceParseContext);
+                ResourceFunction function = entry.getValue();
+                subResourceClass = function.invoke(resourceInstance, httpContext, subResourceParseContext);
             } catch (InvocationTargetException | IllegalAccessException e) {
                 throw new MethodInvokeException("Invoke subresource locator method failed", e);
             }
 
-            return subResourceHandler.get(parametrizedUri)
-                .handleUri(httpContext, subResourceParseContext, subResourceClass);
+            return HandlerResponse.of(true, subResourceClass);
         }
 
+        return HandlerResponse.NOT_MATCH;
+    }
+
+    public HandlerResponse handleMethod(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
         return httpMethodHandler.get(httpContext.getMethod()).stream()
-            .map(handler -> handler.tryHandleUri(httpContext, parseContext, resourceClass))
+            .map(handler -> handler.tryHandleUri(httpContext, parseContext, resourceInstance))
             .filter(HandlerResponse::isMatch)
             .findFirst()
             .orElse(HandlerResponse.NOT_MATCH);
