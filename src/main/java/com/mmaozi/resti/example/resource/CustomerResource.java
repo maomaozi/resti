@@ -1,10 +1,12 @@
 package com.mmaozi.resti.example.resource;
 
 import com.mmaozi.resti.example.entity.Customer;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
+import com.mmaozi.resti.example.service.OrderService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,7 +21,7 @@ public class CustomerResource {
 
     @Path("/orders")
     public OrdersResource getOrders() {
-        return new OrdersResource(customer.getCustomerId());
+        return new OrdersResource(customer.getCustomerId(), new OrderService());
     }
 
 }

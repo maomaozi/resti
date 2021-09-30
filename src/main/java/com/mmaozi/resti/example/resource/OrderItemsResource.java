@@ -2,18 +2,20 @@ package com.mmaozi.resti.example.resource;
 
 import com.mmaozi.resti.example.entity.OrderItem;
 import com.mmaozi.resti.example.service.ItemService;
-import java.util.List;
+
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import java.util.List;
 
 public class OrderItemsResource {
 
     private final Integer orderId;
     private ItemService itemService;
 
-    public OrderItemsResource(int orderId) {
+    public OrderItemsResource(Integer orderId, ItemService itemService) {
         this.orderId = orderId;
+        this.itemService = itemService;
     }
 
     @GET

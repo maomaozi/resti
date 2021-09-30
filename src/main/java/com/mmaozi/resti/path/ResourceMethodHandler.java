@@ -2,16 +2,21 @@ package com.mmaozi.resti.path;
 
 import com.mmaozi.resti.exception.MethodInvokeException;
 import com.mmaozi.resti.path.ParametrizedUri.MatchedParametrizedUri;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Objects;
-import lombok.AllArgsConstructor;
 
-@AllArgsConstructor(staticName = "of")
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Objects;
+
+
 public class ResourceMethodHandler {
 
     private final ParametrizedUri parametrizedUri;
     private final ResourceFunction resourceFunction;
 
+    public ResourceMethodHandler(String uri, Method method) {
+        this.parametrizedUri = ParametrizedUri.build(uri);
+        this.resourceFunction = new ResourceFunction(method);
+    }
 
     public HandlerResponse tryHandleUri(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
         MatchedParametrizedUri matchedUri = parametrizedUri.tryMatch(parseContext.getUri());
@@ -21,7 +26,7 @@ public class ResourceMethodHandler {
         }
 
         ParseContext currentParseContext = ParseContext
-            .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
+                .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
 
         try {
             Object result = resourceFunction.invoke(resourceInstance, httpContext, currentParseContext);

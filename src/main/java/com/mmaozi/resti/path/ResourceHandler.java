@@ -2,6 +2,9 @@ package com.mmaozi.resti.path;
 
 import com.mmaozi.resti.exception.MethodInvokeException;
 import com.mmaozi.resti.path.ParametrizedUri.MatchedParametrizedUri;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -20,12 +21,18 @@ public class ResourceHandler {
     private final Map<HttpMethod, List<ResourceMethodHandler>> httpMethodHandler = new HashMap<>();
     private final Class<?> resourceClass;
 
+    private ParametrizedUri resourceUri;
+
     public void addHttpMethodHandler(HttpMethod method, ResourceMethodHandler handler) {
         httpMethodHandler.computeIfAbsent(method, m -> new ArrayList<>()).add(handler);
     }
 
-    public void addSubResourcesProvider(ParametrizedUri parametrizedUri, ResourceFunction function) {
-        subResourcesProvider.put(parametrizedUri, function);
+    public void addSubResourcesProvider(String uri, ResourceFunction function) {
+        subResourcesProvider.put(ParametrizedUri.build(uri), function);
+    }
+
+    public MatchedParametrizedUri match(String uri) {
+        return resourceUri.tryMatch(uri);
     }
 
     public HandlerResponse handleUri(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
@@ -59,9 +66,13 @@ public class ResourceHandler {
 
     public HandlerResponse handleMethod(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
         return httpMethodHandler.get(httpContext.getMethod()).stream()
-            .map(handler -> handler.tryHandleUri(httpContext, parseContext, resourceInstance))
-            .filter(HandlerResponse::isMatch)
-            .findFirst()
-            .orElse(HandlerResponse.NOT_MATCH);
+                                .map(handler -> handler.tryHandleUri(httpContext, parseContext, resourceInstance))
+                                .filter(HandlerResponse::isMatch)
+                                .findFirst()
+                                .orElse(HandlerResponse.NOT_MATCH);
+    }
+
+    public void setResourceUri(String uri) {
+        resourceUri = ParametrizedUri.build(uri);
     }
 }

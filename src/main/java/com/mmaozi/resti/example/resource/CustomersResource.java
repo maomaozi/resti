@@ -2,13 +2,14 @@ package com.mmaozi.resti.example.resource;
 
 import com.mmaozi.resti.example.entity.Customer;
 import com.mmaozi.resti.example.service.CustomerService;
-import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import java.util.List;
 
 @Path("/customers")
 public class CustomersResource {
@@ -18,12 +19,16 @@ public class CustomersResource {
     @Inject
     public CustomersResource(CustomerService customerService) {
         this.customerService = customerService;
+        init();
+    }
+
+    private void init() {
+        customerService.addCustomer(Customer.of(123, "maozi"));
     }
 
     @GET
     public List<Customer> getCustomers() {
         return customerService.getCustomers();
-
     }
 
     @POST
