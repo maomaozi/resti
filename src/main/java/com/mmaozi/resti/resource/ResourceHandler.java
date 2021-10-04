@@ -1,7 +1,10 @@
 package com.mmaozi.resti.resource;
 
+import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.HttpMethod;
+import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.exception.MethodInvokeException;
-import com.mmaozi.resti.resource.ParametrizedUri.MatchedParametrizedUri;
+import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -17,37 +20,37 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ResourceHandler {
 
-    private final Map<ParametrizedUri, ResourceFunction> subResourcesProvider = new HashMap<>();
+    private final Map<ResourceUri, ResourceFunction> subResourcesProvider = new HashMap<>();
     private final Map<HttpMethod, List<ResourceMethodHandler>> httpMethodHandler = new HashMap<>();
     private final Class<?> resourceClass;
 
-    private ParametrizedUri resourceUri;
+    private ResourceUri resourceUri;
 
     public void addHttpMethodHandler(HttpMethod method, ResourceMethodHandler handler) {
         httpMethodHandler.computeIfAbsent(method, m -> new ArrayList<>()).add(handler);
     }
 
     public void addSubResourcesProvider(String uri, ResourceFunction function) {
-        subResourcesProvider.put(ParametrizedUri.build(uri), function);
+        subResourcesProvider.put(ResourceUri.build(uri), function);
     }
 
     public MatchedParametrizedUri match(String uri) {
         return resourceUri.tryMatch(uri);
     }
 
-    public HandlerResponse handleUri(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
+    public ResourceResponse handleUri(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
 
-        for (Entry<ParametrizedUri, ResourceFunction> entry : subResourcesProvider.entrySet()) {
-            ParametrizedUri parametrizedUri = entry.getKey();
+        for (Entry<ResourceUri, ResourceFunction> entry : subResourcesProvider.entrySet()) {
+            ResourceUri resourceUri = entry.getKey();
 
-            MatchedParametrizedUri matchedUri = parametrizedUri.tryMatch(parseContext.getUri());
+            MatchedParametrizedUri matchedUri = resourceUri.tryMatch(parseContext.getUri());
 
             if (Objects.isNull(matchedUri)) {
                 continue;
             }
 
             ParseContext subResourceParseContext = ParseContext
-                .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
+                    .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
             parseContext.setChildContext(subResourceParseContext);
 
             Object subResourceClass;
@@ -58,21 +61,21 @@ public class ResourceHandler {
                 throw new MethodInvokeException("Invoke subresource locator method failed", e);
             }
 
-            return HandlerResponse.of(true, subResourceClass);
+            return ResourceResponse.of(true, subResourceClass);
         }
 
-        return HandlerResponse.NOT_MATCH;
+        return ResourceResponse.NOT_MATCH;
     }
 
-    public HandlerResponse handleMethod(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
+    public ResourceResponse handleMethod(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
         return httpMethodHandler.get(httpContext.getMethod()).stream()
                                 .map(handler -> handler.tryHandleUri(httpContext, parseContext, resourceInstance))
-                                .filter(HandlerResponse::isMatch)
+                                .filter(ResourceResponse::isMatch)
                                 .findFirst()
-                                .orElse(HandlerResponse.NOT_MATCH);
+                                .orElse(ResourceResponse.NOT_MATCH);
     }
 
     public void setResourceUri(String uri) {
-        resourceUri = ParametrizedUri.build(uri);
+        resourceUri = ResourceUri.build(uri);
     }
 }

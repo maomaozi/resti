@@ -1,9 +1,9 @@
 package com.mmaozi.resti.resource.paramresolver;
 
 import com.alibaba.fastjson.JSON;
+import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.exception.RestiBaseException;
-import com.mmaozi.resti.resource.HttpContext;
-import com.mmaozi.resti.resource.ParseContext;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

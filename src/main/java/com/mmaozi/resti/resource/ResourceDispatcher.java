@@ -2,7 +2,10 @@ package com.mmaozi.resti.resource;
 
 
 import com.mmaozi.di.container.Container;
-import com.mmaozi.resti.resource.ParametrizedUri.MatchedParametrizedUri;
+import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.JaxRsHttpMethodFactory;
+import com.mmaozi.resti.context.ParseContext;
+import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -95,12 +98,12 @@ public class ResourceDispatcher {
                     matchedParametrizedUri.getParameters());
 
             do {
-                HandlerResponse handlerResponse = resourceHandler.handleUri(httpContext, parseContext, instance);
-                if (!handlerResponse.isMatch()) {
+                ResourceResponse resourceResponse = resourceHandler.handleUri(httpContext, parseContext, instance);
+                if (!resourceResponse.isMatch()) {
                     break;
                 }
                 parseContext = parseContext.getChildContext();
-                instance = handlerResponse.getResult();
+                instance = resourceResponse.getResult();
                 resourceHandler = subResourceHandlers.get(instance.getClass());
             } while (!parseContext.getUri().equals(""));
 

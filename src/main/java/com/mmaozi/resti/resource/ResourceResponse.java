@@ -5,9 +5,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class HandlerResponse {
+public class ResourceResponse {
 
-    public static final HandlerResponse NOT_MATCH = HandlerResponse.of(false, null);
+    public static final ResourceResponse NOT_MATCH = ResourceResponse.of(false, null);
 
     private final boolean match;
     private final Object result;

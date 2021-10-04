@@ -1,4 +1,4 @@
-package com.mmaozi.resti.resource;
+package com.mmaozi.resti.context;
 
 public enum HttpMethod {
     HEAD, OPTIONAL, GET, POST, PUT, PATCH, DELETE

@@ -1,4 +1,4 @@
-package com.mmaozi.resti.resource;
+package com.mmaozi.resti.context;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;

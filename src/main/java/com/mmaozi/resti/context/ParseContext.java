@@ -1,4 +1,4 @@
-package com.mmaozi.resti.resource;
+package com.mmaozi.resti.context;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

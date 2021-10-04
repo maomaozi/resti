@@ -1,7 +1,7 @@
 package com.mmaozi.resti.resource.paramresolver;
 
-import com.mmaozi.resti.resource.HttpContext;
-import com.mmaozi.resti.resource.ParseContext;
+import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.ParseContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;

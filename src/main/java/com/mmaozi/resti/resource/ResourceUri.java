@@ -20,25 +20,25 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE, staticName = "of")
-public class ParametrizedUri {
+public class ResourceUri {
 
     private static final Pattern regexUrlMatcher = Pattern.compile("^[\\w\\\\_+-.%\\s]*$|^\\{\\s*([\\D_][\\w\\d_]*)\\s*(:\\s*(.+[\\S])\\s*)?}$");
     private static final String ANY_VALUE = "(\\w+)";
     private final Pattern pattern;
     private final List<String> parameters;
 
-    public static ParametrizedUri build(String rawUri) {
+    public static ResourceUri build(String rawUri) {
         List<String> parameters = new ArrayList<>();
 
         String parsedUrl = Arrays.stream(rawUri.split("/"))
-            .filter(part -> !part.trim().equals(""))
-            .map(part -> URLDecoder.decode(part, UTF_8))
-            .map(part -> part.replaceAll("\\\\", "\\\\\\\\"))
-            .map(regexUrlMatcher::matcher)
-            .map(matcher -> parseRawUri(rawUri, parameters, matcher))
-            .collect(Collectors.joining("/", "^/?", "/?"));
+                                 .filter(part -> !part.trim().equals(""))
+                                 .map(part -> URLDecoder.decode(part, UTF_8))
+                                 .map(part -> part.replaceAll("\\\\", "\\\\\\\\"))
+                                 .map(regexUrlMatcher::matcher)
+                                 .map(matcher -> parseRawUri(rawUri, parameters, matcher))
+                                 .collect(Collectors.joining("/", "^/?", "/?"));
 
-        return ParametrizedUri.of(Pattern.compile(parsedUrl), parameters);
+        return ResourceUri.of(Pattern.compile(parsedUrl), parameters);
     }
 
     private static String parseRawUri(String rawUri, List<String> parameters, Matcher matcher) {
