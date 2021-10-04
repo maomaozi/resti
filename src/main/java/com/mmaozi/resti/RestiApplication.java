@@ -15,7 +15,7 @@ public class RestiApplication {
     private final ContainedApp containedApp = new ContainedApp(RestiApplication.class);
 
     @Main
-    public void main(Class<?> userAppClass, Object... args) throws Exception {
+    public void bootstrap(Class<?> userAppClass, Object... args) throws Exception {
         List<Class<?>> userClasses = scanPackages(userAppClass);
 
         userClasses.forEach(containedApp::register);

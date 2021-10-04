@@ -1,5 +1,6 @@
 package com.mmaozi.resti.resource;
 
+import com.mmaozi.resti.resource.paramresolver.BeanParamResolver;
 import com.mmaozi.resti.resource.paramresolver.ParamResolver;
 import com.mmaozi.resti.resource.paramresolver.PathParamResolver;
 import com.mmaozi.resti.resource.paramresolver.QueryParamResolver;
@@ -17,7 +18,7 @@ public class ResourceFunction {
     private final Method method;
 
     private static final List<ParamResolver> resolvers = List
-        .of(PathParamResolver.INSTANCE, QueryParamResolver.INSTANCE);
+            .of(PathParamResolver.INSTANCE, QueryParamResolver.INSTANCE, BeanParamResolver.INSTANCE);
     private final List<BiFunction<HttpContext, ParseContext, Object>> valueExtractor = new ArrayList<>();
 
     public ResourceFunction(Method method) {

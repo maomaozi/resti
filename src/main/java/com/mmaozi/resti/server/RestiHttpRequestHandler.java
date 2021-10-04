@@ -17,9 +17,13 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.inject.Inject;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -40,17 +44,43 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
     private final ResourceDispatcher dispatcher;
     private HttpContext context;
 
+    PipedOutputStream os;
+    InputStream is;
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        super.handlerAdded(ctx);
+        os = new PipedOutputStream();
+        is = new PipedInputStream(os);
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        super.handlerRemoved(ctx);
+        this.os.close();
+        this.is.close();
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         if (msg instanceof HttpRequest) {
             resolveRequest((HttpRequest) msg);
         } else if (msg instanceof HttpContent) {
-            Object result = dispatcher.handle(context);
-            FullHttpResponse response = isNull(result) ?
-                    defaultNotFoundResponse(ctx, context.getOriginalUri()) : resolveResponse(ctx, result);
-            ctx.writeAndFlush(response)
-               .addListener(ChannelFutureListener.CLOSE);
+
+            ByteBuf body = ((HttpContent) msg).content();
+
+            if (body.readableBytes() > 0) {
+                body.readBytes(os, body.readableBytes());
+            }
+
+            if (msg instanceof LastHttpContent) {
+                Object result = dispatcher.handle(context);
+                FullHttpResponse response = isNull(result) ?
+                        defaultNotFoundResponse(ctx, context.getOriginalUri()) : resolveResponse(ctx, result);
+                ctx.writeAndFlush(response)
+                   .addListener(ChannelFutureListener.CLOSE);
+            }
         }
     }
 
@@ -72,6 +102,7 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
                              .originalUri(request.uri())
                              .method(httpMethod)
                              .headers(headerMap)
+                             .rawBody(is)
                              .build();
     }
 

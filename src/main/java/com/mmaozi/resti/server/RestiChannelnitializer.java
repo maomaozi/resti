@@ -18,6 +18,8 @@ public class RestiChannelnitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel ch) {
-        ch.pipeline().addLast(new HttpServerCodec()).addLast(container.getInstance(RestiHttpRequestHandler.class));
+        ch.pipeline()
+          .addLast(new HttpServerCodec())
+          .addLast(container.getInstance(RestiHttpRequestHandler.class));
     }
 }
