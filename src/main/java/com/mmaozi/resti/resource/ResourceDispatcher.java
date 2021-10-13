@@ -2,13 +2,17 @@ package com.mmaozi.resti.resource;
 
 
 import com.mmaozi.di.container.Container;
-import com.mmaozi.resti.context.HttpContext;
 import com.mmaozi.resti.context.HttpMethodFactory;
+import com.mmaozi.resti.context.HttpRequestCtx;
+import com.mmaozi.resti.context.HttpResponseCtx;
 import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
+import com.mmaozi.resti.resource.response.DefaultNotFoundResponse;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -26,10 +30,12 @@ public class ResourceDispatcher {
     private final List<ResourceHandler> rootResourceHandler = new ArrayList<>();
     private final Map<Class<?>, ResourceHandler> subResourceHandlers = new HashMap<>();
     private final Container container;
+    private final ResourceSerializer serializer;
 
     @Inject
-    public ResourceDispatcher(Container container) {
+    public ResourceDispatcher(Container container, ResourceSerializer serializer) {
         this.container = container;
+        this.serializer = serializer;
     }
 
     public void build(List<Class<?>> classes) {
@@ -82,9 +88,9 @@ public class ResourceDispatcher {
                      .orElse(false);
     }
 
-    public Object handle(HttpContext httpContext) {
+    public void handle(HttpRequestCtx httpRequest, HttpResponseCtx httpResponse) throws IOException {
         for (ResourceHandler resourceHandler : rootResourceHandler) {
-            MatchedParametrizedUri matchedParametrizedUri = resourceHandler.match(httpContext.getOriginalUri());
+            MatchedParametrizedUri matchedParametrizedUri = resourceHandler.match(httpRequest.getOriginalUri());
 
             if (isNull(matchedParametrizedUri)) {
                 continue;
@@ -98,7 +104,7 @@ public class ResourceDispatcher {
                     matchedParametrizedUri.getParameters());
 
             do {
-                ResourceResponse resourceResponse = resourceHandler.handleUri(httpContext, parseContext, instance);
+                ResourceResponse resourceResponse = resourceHandler.handleUri(httpRequest, parseContext, instance);
                 if (!resourceResponse.isMatch()) {
                     break;
                 }
@@ -107,11 +113,26 @@ public class ResourceDispatcher {
                 resourceHandler = subResourceHandlers.get(instance.getClass());
             } while (!parseContext.getUri().equals(""));
 
-            return resourceHandler.handleMethod(httpContext, parseContext, instance)
-                                  .getResult();
+            Object bean = resourceHandler.handleMethod(httpRequest, parseContext, instance)
+                                         .getResult();
+
+            handleResponse(httpResponse, bean, Response.Status.OK);
+            return;
         }
 
-        // should return 404 reponse here
-        return null;
+        handleResponse(httpResponse, DefaultNotFoundResponse.of(httpRequest.getOriginalUri()), Response.Status.NOT_FOUND);
     }
+
+    private void handleResponse(HttpResponseCtx httpResponse, Object bean, Response.StatusType defaultStatus) throws IOException {
+        if (bean instanceof Response) {
+            Response response = (Response) bean;
+            httpResponse.setStatus(response.getStatusInfo());
+            httpResponse.getOutputStream().write(serializer.serialize(response.getEntity()));
+//            response.getHeaders().forEach((key, value)->httpResponse.getHeaders().put(key, value));
+        } else {
+            httpResponse.getOutputStream().write(serializer.serialize(bean));
+            httpResponse.setStatus(defaultStatus);
+        }
+    }
+
 }

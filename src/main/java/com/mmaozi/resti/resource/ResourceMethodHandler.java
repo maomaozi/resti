@@ -1,6 +1,6 @@
 package com.mmaozi.resti.resource;
 
-import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.HttpRequestCtx;
 import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.exception.MethodInvokeException;
 import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
@@ -20,7 +20,7 @@ public class ResourceMethodHandler {
         this.resourceFunction = new ResourceFunction(method);
     }
 
-    public ResourceResponse tryHandleUri(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
+    public ResourceResponse tryHandleUri(HttpRequestCtx httpRequest, ParseContext parseContext, Object resourceInstance) {
         MatchedParametrizedUri matchedUri = resourceUri.tryMatch(parseContext.getUri());
 
         if (Objects.isNull(matchedUri) || !matchedUri.getRemainingUri().equals("")) {
@@ -31,7 +31,7 @@ public class ResourceMethodHandler {
                 .of(parseContext, matchedUri.getRemainingUri(), matchedUri.getParameters());
 
         try {
-            Object result = resourceFunction.invoke(resourceInstance, httpContext, currentParseContext);
+            Object result = resourceFunction.invoke(resourceInstance, httpRequest, currentParseContext);
             return ResourceResponse.of(true, result);
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new MethodInvokeException("Invoke resource method failed", e);

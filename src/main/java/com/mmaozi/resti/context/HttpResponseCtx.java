@@ -5,20 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.InputStream;
+import javax.ws.rs.core.Response;
+import java.io.OutputStream;
 import java.util.Map;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class HttpContext {
-    private HttpMethod method;
-    private String originalUri;
-
-    private Map<String, String> queryParams;
+public class HttpResponseCtx {
+    private Response.StatusType status;
     private Map<String, String> headers;
 
-    private Map<String, InputStream> formData;
-    private InputStream rawBody;
+    private OutputStream outputStream;
 }

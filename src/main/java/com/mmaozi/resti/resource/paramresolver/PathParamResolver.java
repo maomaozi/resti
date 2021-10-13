@@ -1,7 +1,7 @@
 package com.mmaozi.resti.resource.paramresolver;
 
 import com.alibaba.fastjson.JSON;
-import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.HttpRequestCtx;
 import com.mmaozi.resti.context.ParseContext;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -22,7 +22,7 @@ public class PathParamResolver extends ParamResolver {
     }
 
     @Override
-    protected BiFunction<HttpContext, ParseContext, Object> resolve(Parameter param, Annotation annotation) {
+    protected BiFunction<HttpRequestCtx, ParseContext, Object> resolve(Parameter param, Annotation annotation) {
         return (h, p) -> JSON.parseObject(p.findPathParam(((PathParam) annotation).value()), param.getType());
     }
 }

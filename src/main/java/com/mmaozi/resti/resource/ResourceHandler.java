@@ -1,7 +1,7 @@
 package com.mmaozi.resti.resource;
 
-import com.mmaozi.resti.context.HttpContext;
 import com.mmaozi.resti.context.HttpMethod;
+import com.mmaozi.resti.context.HttpRequestCtx;
 import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.exception.MethodInvokeException;
 import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
@@ -38,7 +38,7 @@ public class ResourceHandler {
         return resourceUri.tryMatch(uri);
     }
 
-    public ResourceResponse handleUri(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
+    public ResourceResponse handleUri(HttpRequestCtx httpRequest, ParseContext parseContext, Object resourceInstance) {
 
         for (Entry<ResourceUri, ResourceFunction> entry : subResourcesProvider.entrySet()) {
             ResourceUri resourceUri = entry.getKey();
@@ -56,7 +56,7 @@ public class ResourceHandler {
             Object subResourceClass;
             try {
                 ResourceFunction function = entry.getValue();
-                subResourceClass = function.invoke(resourceInstance, httpContext, subResourceParseContext);
+                subResourceClass = function.invoke(resourceInstance, httpRequest, subResourceParseContext);
             } catch (InvocationTargetException | IllegalAccessException e) {
                 throw new MethodInvokeException("Invoke subresource locator method failed", e);
             }
@@ -67,9 +67,9 @@ public class ResourceHandler {
         return ResourceResponse.NOT_MATCH;
     }
 
-    public ResourceResponse handleMethod(HttpContext httpContext, ParseContext parseContext, Object resourceInstance) {
-        return httpMethodHandler.get(httpContext.getMethod()).stream()
-                                .map(handler -> handler.tryHandleUri(httpContext, parseContext, resourceInstance))
+    public ResourceResponse handleMethod(HttpRequestCtx httpRequest, ParseContext parseContext, Object resourceInstance) {
+        return httpMethodHandler.get(httpRequest.getMethod()).stream()
+                                .map(handler -> handler.tryHandleUri(httpRequest, parseContext, resourceInstance))
                                 .filter(ResourceResponse::isMatch)
                                 .findFirst()
                                 .orElse(ResourceResponse.NOT_MATCH);

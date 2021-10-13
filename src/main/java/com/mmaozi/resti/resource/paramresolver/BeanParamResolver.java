@@ -1,7 +1,7 @@
 package com.mmaozi.resti.resource.paramresolver;
 
 import com.alibaba.fastjson.JSON;
-import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.HttpRequestCtx;
 import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.exception.RestiBaseException;
 import lombok.AccessLevel;
@@ -24,10 +24,10 @@ public class BeanParamResolver extends ParamResolver {
     }
 
     @Override
-    protected BiFunction<HttpContext, ParseContext, Object> resolve(Parameter param, Annotation annotation) {
+    protected BiFunction<HttpRequestCtx, ParseContext, Object> resolve(Parameter param, Annotation annotation) {
         return (h, p) -> {
             try {
-                return JSON.parseObject(h.getRawBody().readNBytes(h.getRawBody().available()), param.getType());
+                return JSON.parseObject(h.getInputStream().readNBytes(h.getInputStream().available()), param.getType());
             } catch (IOException e) {
                 throw new RestiBaseException("IO error", e);
             }

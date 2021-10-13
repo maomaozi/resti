@@ -1,6 +1,6 @@
 package com.mmaozi.resti.resource;
 
-import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.HttpRequestCtx;
 import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.resource.paramresolver.BeanParamResolver;
 import com.mmaozi.resti.resource.paramresolver.ParamResolver;
@@ -21,29 +21,29 @@ public class ResourceFunction {
 
     private static final List<ParamResolver> resolvers = List
             .of(PathParamResolver.INSTANCE, QueryParamResolver.INSTANCE, BeanParamResolver.INSTANCE);
-    private final List<BiFunction<HttpContext, ParseContext, Object>> valueExtractor = new ArrayList<>();
+    private final List<BiFunction<HttpRequestCtx, ParseContext, Object>> valueExtractor = new ArrayList<>();
 
     public ResourceFunction(Method method) {
         this.method = method;
         Parameter[] parameters = method.getParameters();
 
         for (Parameter p : parameters) {
-            BiFunction<HttpContext, ParseContext, Object> extractor = resolvers.stream()
-                .map(resolver -> resolver.tryResolve(p))
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse((httpContext, parseContext) -> null);
+            BiFunction<HttpRequestCtx, ParseContext, Object> extractor = resolvers.stream()
+                                                                                  .map(resolver -> resolver.tryResolve(p))
+                                                                                  .filter(Objects::nonNull)
+                                                                                  .findFirst()
+                                                                                  .orElse((httpContext, parseContext) -> null);
 
             valueExtractor.add(extractor);
         }
     }
 
-    public Object invoke(Object obj, HttpContext httpContext, ParseContext parseContext)
-        throws InvocationTargetException, IllegalAccessException {
+    public Object invoke(Object obj, HttpRequestCtx httpRequest, ParseContext parseContext)
+            throws InvocationTargetException, IllegalAccessException {
 
         Object[] parameterValues = valueExtractor.stream()
-            .map(extractor -> extractor.apply(httpContext, parseContext))
-            .toArray();
+                                                 .map(extractor -> extractor.apply(httpRequest, parseContext))
+                                                 .toArray();
 
         return method.invoke(obj, parameterValues);
     }

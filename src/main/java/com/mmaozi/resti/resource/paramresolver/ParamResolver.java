@@ -1,6 +1,6 @@
 package com.mmaozi.resti.resource.paramresolver;
 
-import com.mmaozi.resti.context.HttpContext;
+import com.mmaozi.resti.context.HttpRequestCtx;
 import com.mmaozi.resti.context.ParseContext;
 
 import java.lang.annotation.Annotation;
@@ -10,7 +10,7 @@ import java.util.function.BiFunction;
 
 public abstract class ParamResolver {
 
-    public BiFunction<HttpContext, ParseContext, Object> tryResolve(Parameter param) {
+    public BiFunction<HttpRequestCtx, ParseContext, Object> tryResolve(Parameter param) {
         Annotation annotation = param.getAnnotation(getAnnotationType());
         if (Objects.isNull(annotation)) {
             return null;
@@ -21,5 +21,5 @@ public abstract class ParamResolver {
 
     protected abstract Class<? extends Annotation> getAnnotationType();
 
-    protected abstract BiFunction<HttpContext, ParseContext, Object> resolve(Parameter param, Annotation annotation);
+    protected abstract BiFunction<HttpRequestCtx, ParseContext, Object> resolve(Parameter param, Annotation annotation);
 }
