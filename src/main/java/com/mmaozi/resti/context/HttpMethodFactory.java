@@ -7,7 +7,7 @@ import javax.ws.rs.PUT;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
-public class JaxRsHttpMethodFactory {
+public class HttpMethodFactory {
     private static final Map<Class<? extends Annotation>, HttpMethod> methodMapping = Map.of(
             GET.class, HttpMethod.GET,
             POST.class, HttpMethod.POST,

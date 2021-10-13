@@ -1,13 +1,10 @@
 package com.mmaozi.resti.server;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mmaozi.di.scope.annotations.Prototype;
 import com.mmaozi.resti.context.HttpContext;
 import com.mmaozi.resti.context.HttpMethod;
 import com.mmaozi.resti.resource.ResourceDispatcher;
 import com.mmaozi.resti.server.response.DefaultInternalErrorResponse;
-import com.mmaozi.resti.server.response.DefaultNotFoundResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,23 +26,25 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
-import static java.util.Objects.isNull;
 
 @Prototype
 public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
 
+    private final RestiSerializer serializer;
+
     @Inject
-    public RestiHttpRequestHandler(ResourceDispatcher dispatcher) {
+    public RestiHttpRequestHandler(ResourceDispatcher dispatcher, RestiSerializer serializer) {
         this.dispatcher = dispatcher;
+        this.serializer = serializer;
     }
 
     private final ResourceDispatcher dispatcher;
-    private HttpContext context;
 
-    PipedOutputStream os;
-    InputStream is;
+    private HttpContext context;
+    private PipedOutputStream os;
+    private InputStream is;
+
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
@@ -76,9 +75,8 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
 
             if (msg instanceof LastHttpContent) {
                 Object result = dispatcher.handle(context);
-                FullHttpResponse response = isNull(result) ?
-                        defaultNotFoundResponse(ctx, context.getOriginalUri()) : resolveResponse(ctx, result);
-                ctx.writeAndFlush(response)
+
+                ctx.writeAndFlush(resolveResponse(ctx, result))
                    .addListener(ChannelFutureListener.CLOSE);
             }
         }
@@ -107,11 +105,11 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
     }
 
     private FullHttpResponse resolveResponse(ChannelHandlerContext ctx, Object bean) {
-        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, OK, serialize(ctx, bean));
+        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, OK, toByteBuf(ctx, bean));
     }
 
-    private ByteBuf serialize(ChannelHandlerContext ctx, Object bean) {
-        byte[] bytes = JSON.toJSONBytes(bean, SerializerFeature.EMPTY);
+    private ByteBuf toByteBuf(ChannelHandlerContext ctx, Object bean) {
+        byte[] bytes = serializer.serialize(bean);
 
         ByteBuf buffer = ctx.alloc().buffer(bytes.length);
         buffer.writeBytes(bytes);
@@ -121,10 +119,6 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
     private FullHttpResponse defaultErrorResponse(ChannelHandlerContext ctx, Throwable cause) {
         String stackTrace = ExceptionUtils.getStackTrace(cause);
         return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, INTERNAL_SERVER_ERROR,
-                serialize(ctx, DefaultInternalErrorResponse.of(stackTrace)));
-    }
-
-    private FullHttpResponse defaultNotFoundResponse(ChannelHandlerContext ctx, String uri) {
-        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, NOT_FOUND, serialize(ctx, DefaultNotFoundResponse.of(uri)));
+                toByteBuf(ctx, DefaultInternalErrorResponse.of(stackTrace)));
     }
 }

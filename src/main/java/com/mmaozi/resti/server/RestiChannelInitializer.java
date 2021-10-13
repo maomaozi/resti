@@ -7,12 +7,12 @@ import io.netty.handler.codec.http.HttpServerCodec;
 
 import javax.inject.Inject;
 
-public class RestiChannelnitializer extends ChannelInitializer<SocketChannel> {
+public class RestiChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final Container container;
 
     @Inject
-    public RestiChannelnitializer(Container container) {
+    public RestiChannelInitializer(Container container) {
         this.container = container;
     }
 

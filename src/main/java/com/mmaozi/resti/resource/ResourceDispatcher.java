@@ -3,7 +3,7 @@ package com.mmaozi.resti.resource;
 
 import com.mmaozi.di.container.Container;
 import com.mmaozi.resti.context.HttpContext;
-import com.mmaozi.resti.context.JaxRsHttpMethodFactory;
+import com.mmaozi.resti.context.HttpMethodFactory;
 import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
 
@@ -71,7 +71,7 @@ public class ResourceDispatcher {
     private boolean tryResolveMethodHandler(ResourceHandler resourceHandler, Method method, Path pathAnnotation) {
         return Arrays.stream(method.getAnnotations())
                      .map(Annotation::annotationType)
-                     .map(JaxRsHttpMethodFactory::getMethod)
+                     .map(HttpMethodFactory::getMethod)
                      .filter(Objects::nonNull)
                      .findFirst()
                      .map(httpMethod -> {
