@@ -8,7 +8,6 @@ import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +56,7 @@ public class ResourceHandler {
             try {
                 ResourceFunction function = entry.getValue();
                 subResourceClass = function.invoke(resourceInstance, httpRequest, subResourceParseContext);
-            } catch (InvocationTargetException | IllegalAccessException e) {
+            } catch (Exception e) {
                 throw new MethodInvokeException("Invoke subresource locator method failed", e);
             }
 
