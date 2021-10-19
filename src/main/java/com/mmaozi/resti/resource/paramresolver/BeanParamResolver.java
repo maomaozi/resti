@@ -27,7 +27,7 @@ public class BeanParamResolver extends ParamResolver {
     protected BiFunction<HttpRequestCtx, ParseContext, Object> resolve(Parameter param, Annotation annotation) {
         return (h, p) -> {
             try {
-                return JSON.parseObject(h.getInputStream().readNBytes(h.getInputStream().available()), param.getType());
+                return JSON.parseObject(h.getInputStream().readAllBytes(), param.getType());
             } catch (IOException e) {
                 throw new RestiBaseException("IO error", e);
             }

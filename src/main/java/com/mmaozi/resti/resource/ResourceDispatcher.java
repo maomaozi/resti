@@ -6,6 +6,7 @@ import com.mmaozi.resti.context.HttpMethodFactory;
 import com.mmaozi.resti.context.HttpRequestCtx;
 import com.mmaozi.resti.context.HttpResponseCtx;
 import com.mmaozi.resti.context.ParseContext;
+import com.mmaozi.resti.exception.StreamIOException;
 import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
 import com.mmaozi.resti.resource.response.DefaultNotFoundResponse;
 
@@ -88,7 +89,7 @@ public class ResourceDispatcher {
                      .orElse(false);
     }
 
-    public void handle(HttpRequestCtx httpRequest, HttpResponseCtx httpResponse) throws IOException {
+    public void handle(HttpRequestCtx httpRequest, HttpResponseCtx httpResponse) {
         for (ResourceHandler resourceHandler : rootResourceHandler) {
             MatchedParametrizedUri matchedParametrizedUri = resourceHandler.match(httpRequest.getOriginalUri());
 
@@ -123,15 +124,19 @@ public class ResourceDispatcher {
         handleResponse(httpResponse, DefaultNotFoundResponse.of(httpRequest.getOriginalUri()), Response.Status.NOT_FOUND);
     }
 
-    private void handleResponse(HttpResponseCtx httpResponse, Object bean, Response.StatusType defaultStatus) throws IOException {
-        if (bean instanceof Response) {
-            Response response = (Response) bean;
-            httpResponse.setStatus(response.getStatusInfo());
-            httpResponse.getOutputStream().write(serializer.serialize(response.getEntity()));
+    private void handleResponse(HttpResponseCtx httpResponse, Object bean, Response.StatusType defaultStatus) {
+        try {
+            if (bean instanceof Response) {
+                Response response = (Response) bean;
+                httpResponse.setStatus(response.getStatusInfo());
+                httpResponse.getOutputStream().write(serializer.serialize(response.getEntity()));
 //            response.getHeaders().forEach((key, value)->httpResponse.getHeaders().put(key, value));
-        } else {
-            httpResponse.getOutputStream().write(serializer.serialize(bean));
-            httpResponse.setStatus(defaultStatus);
+            } else {
+                httpResponse.getOutputStream().write(serializer.serialize(bean));
+                httpResponse.setStatus(defaultStatus);
+            }
+        } catch (IOException e) {
+            throw new StreamIOException("IO Error", e);
         }
     }
 

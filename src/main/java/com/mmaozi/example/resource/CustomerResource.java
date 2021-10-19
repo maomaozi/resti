@@ -19,6 +19,14 @@ public class CustomerResource {
         return customer;
     }
 
+//    @GET
+//    public Response getCustomer() {
+//        if (Objects.isNull(customer)) {
+//            return Response.status(404).build();
+//        }
+//        return Response.ok(customer).build();
+//    }
+
     @Path("/orders")
     public OrdersResource getOrders() {
         return new OrdersResource(customer.getCustomerId(), new OrderService());
