@@ -5,7 +5,6 @@ import com.mmaozi.resti.context.HttpMethod;
 import com.mmaozi.resti.context.HttpRequestCtx;
 import com.mmaozi.resti.context.HttpResponseCtx;
 import com.mmaozi.resti.context.HttpStatusFactory;
-import com.mmaozi.resti.exception.StreamIOException;
 import com.mmaozi.resti.resource.ResourceDispatcher;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
@@ -73,11 +72,15 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof io.netty.handler.codec.http.HttpRequest) {
             resolveRequest((io.netty.handler.codec.http.HttpRequest) msg);
             dispatchTask = executorService.submit(() -> {
-                dispatcher.handle(httpRequest, httpResponse);
                 try {
-                    channelResponseOs.close();
-                } catch (IOException e) {
-                    throw new StreamIOException("IO Error", e);
+                    dispatcher.handle(httpRequest, httpResponse);
+                } catch (Exception ex) {
+                    throw ex;
+                } finally {
+                    try {
+                        channelResponseOs.close();
+                    } catch (IOException e) {
+                    }
                 }
             });
         } else if (msg instanceof HttpContent) {
@@ -91,10 +94,12 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
             if (msg instanceof LastHttpContent) {
                 this.channelRequestOs.close();
 
+                ByteBuf content = readResponse(ctx);
+
                 DefaultFullHttpResponse response = new DefaultFullHttpResponse(
                         HttpVersion.HTTP_1_1,
                         HttpStatusFactory.getStatus(httpResponse.getStatus()),
-                        readResponse(ctx));
+                        content);
 
                 httpResponse.getHeaders()
                             .forEach((key, value) -> response.headers().set(key, value));
@@ -143,11 +148,12 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
     }
 
     private ByteBuf readResponse(ChannelHandlerContext ctx) throws Exception {
-        ByteBuf buffer = ctx.alloc().buffer(1024);
+        ByteBuf buffer = ctx.alloc().buffer(4096);
         while (!dispatchTask.isDone()) {
-            buffer.writeBytes(channelResponseIs.readNBytes(channelResponseIs.available()));
+            buffer.writeBytes(channelResponseIs.readNBytes(1024));
         }
 
+        // handle exception in dispatcher
         dispatchTask.get();
 
         buffer.writeBytes(channelResponseIs.readAllBytes());
@@ -158,12 +164,6 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
         byte[] stackTrace = ExceptionUtils.getStackTrace(cause).getBytes(StandardCharsets.UTF_8);
         ByteBuf buffer = ctx.alloc().buffer(stackTrace.length);
         buffer.writeBytes(stackTrace);
-        try {
-            channelResponseOs.close();
-        } catch (IOException ex) {
-            ;
-        }
-
         return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, INTERNAL_SERVER_ERROR, buffer);
     }
 }
