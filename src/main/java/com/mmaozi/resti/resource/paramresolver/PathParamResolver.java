@@ -23,6 +23,9 @@ public class PathParamResolver extends ParamResolver {
 
     @Override
     protected BiFunction<HttpRequestCtx, ParseContext, Object> resolve(Parameter param, Annotation annotation) {
-        return (h, p) -> JSON.parseObject(p.findPathParam(((PathParam) annotation).value()), param.getType());
+        return (h, p) -> {
+            String pathParam = p.findPathParam(((PathParam) annotation).value());
+            return param.getType().equals(String.class) ? pathParam : JSON.parseObject(pathParam, param.getType());
+        };
     }
 }

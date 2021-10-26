@@ -15,6 +15,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.inject.Inject;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 
+@Slf4j
 @Prototype
 public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
 
@@ -112,7 +114,7 @@ public class RestiHttpRequestHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
+        log.error("Exception caught", cause);
         ctx.writeAndFlush(defaultErrorResponse(ctx, cause))
            .addListener(ChannelFutureListener.CLOSE);
     }

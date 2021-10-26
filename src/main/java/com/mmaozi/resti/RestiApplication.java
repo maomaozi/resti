@@ -6,10 +6,12 @@ import com.mmaozi.di.utils.ReflectionUtils;
 import com.mmaozi.resti.exception.RestiBaseException;
 import com.mmaozi.resti.resource.ResourceDispatcher;
 import com.mmaozi.resti.server.HttpServer;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class RestiApplication {
 
     private final ContainedApp containedApp = new ContainedApp(RestiApplication.class);
@@ -24,6 +26,7 @@ public class RestiApplication {
     }
 
     public void run(Class<?> userAppClass, Object... args) {
+        log.info("run");
         containedApp.addSingleton(this.getClass(), this);
         containedApp.run(userAppClass, args);
     }
