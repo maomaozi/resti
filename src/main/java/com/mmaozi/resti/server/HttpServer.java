@@ -7,10 +7,11 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 
-
+@Slf4j
 public class HttpServer {
 
     private final ChannelInitializer<?> channelInitializer;
@@ -21,6 +22,7 @@ public class HttpServer {
     }
 
     public void run() throws Exception {
+        log.info("Initialize netty");
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -33,7 +35,7 @@ public class HttpServer {
              .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             ChannelFuture f = b.bind(8080).sync();
-
+            log.info("Netty started at port 8080");
             f.channel().closeFuture().sync();
         } finally {
             workerGroup.shutdownGracefully();

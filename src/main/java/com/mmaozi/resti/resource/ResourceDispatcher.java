@@ -9,6 +9,7 @@ import com.mmaozi.resti.context.ParseContext;
 import com.mmaozi.resti.exception.StreamIOException;
 import com.mmaozi.resti.resource.ResourceUri.MatchedParametrizedUri;
 import com.mmaozi.resti.resource.response.DefaultNotFoundResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -26,6 +27,7 @@ import java.util.Objects;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+@Slf4j
 public class ResourceDispatcher {
 
     private final List<ResourceHandler> rootResourceHandler = new ArrayList<>();
@@ -42,6 +44,8 @@ public class ResourceDispatcher {
     public void build(List<Class<?>> classes) {
 
         for (Class<?> clazz : classes) {
+
+            log.info("Register user class {}", clazz);
 
             ResourceHandler resourceHandler = new ResourceHandler(clazz);
             if (!tryScanResourceMethodsAndLocator(clazz, resourceHandler)) {

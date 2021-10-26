@@ -18,15 +18,18 @@ public class RestiApplication {
 
     @Main
     public void bootstrap(Class<?> userAppClass, Object... args) throws Exception {
+        log.info("Scan user packages");
         List<Class<?>> userClasses = scanPackages(userAppClass);
+        log.info("{} user classes found", userClasses.size());
 
+        log.info("Register user classes");
         userClasses.forEach(containedApp::register);
         containedApp.getInstance(ResourceDispatcher.class).build(userClasses);
         containedApp.getInstance(HttpServer.class).run();
     }
 
     public void run(Class<?> userAppClass, Object... args) {
-        log.info("run");
+        log.info("Start resti application");
         containedApp.addSingleton(this.getClass(), this);
         containedApp.run(userAppClass, args);
     }
