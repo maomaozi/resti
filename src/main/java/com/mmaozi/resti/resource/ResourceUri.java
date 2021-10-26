@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,7 +16,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Getter
@@ -38,8 +36,6 @@ public class ResourceUri {
 
         String parsedUrl = Arrays.stream(rawUri.split("/"))
                                  .filter(part -> !part.trim().equals(""))
-                                 .map(part -> URLDecoder.decode(part, UTF_8))
-                                 .map(part -> part.replaceAll("\\\\", "\\\\\\\\"))
                                  .map(regexUrlMatcher::matcher)
                                  .map(matcher -> parseRawUri(rawUri, parameters, matcher))
                                  .collect(Collectors.joining("/", "^/", ""));
