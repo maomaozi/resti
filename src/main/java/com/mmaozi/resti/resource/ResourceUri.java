@@ -38,7 +38,7 @@ public class ResourceUri {
                                  .filter(part -> !part.trim().equals(""))
                                  .map(regexUrlMatcher::matcher)
                                  .map(matcher -> parseRawUri(rawUri, parameters, matcher))
-                                 .collect(Collectors.joining("/", "^/", ""));
+                                 .collect(Collectors.joining("/", "^/?", ""));
 
         return ResourceUri.of(Pattern.compile(parsedUrl), parameters);
     }
@@ -54,7 +54,7 @@ public class ResourceUri {
 
         if (Objects.nonNull(pathRegex)) {
             parameters.add(pathVariable);
-            return String.format("(%s)", pathRegex);
+            return String.format("([^/]%s)", pathRegex);
         } else if (Objects.nonNull(pathVariable)) {
             parameters.add(pathVariable);
             return ANY_VALUE;
