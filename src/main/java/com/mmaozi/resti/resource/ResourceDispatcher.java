@@ -48,7 +48,7 @@ public class ResourceDispatcher {
             log.info("Register user class {}", clazz);
 
             ResourceHandler resourceHandler = new ResourceHandler(clazz);
-            if (!tryScanResourceMethodsAndLocator(clazz, resourceHandler)) {
+            if (!tryScanResourceMethodsAndLocator(resourceHandler)) {
                 continue;
             }
 
@@ -62,9 +62,9 @@ public class ResourceDispatcher {
         }
     }
 
-    private boolean tryScanResourceMethodsAndLocator(Class<?> clazz, ResourceHandler resourceHandler) {
+    private boolean tryScanResourceMethodsAndLocator(ResourceHandler resourceHandler) {
         boolean isResourceHandler = false;
-        for (Method method : clazz.getMethods()) {
+        for (Method method : resourceHandler.getResourceClass().getMethods()) {
             Path pathAnnotation = method.getAnnotation(Path.class);
             boolean isMethodHandler = tryResolveMethodHandler(resourceHandler, method, pathAnnotation);
             boolean hasPath = nonNull(pathAnnotation);
