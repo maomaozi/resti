@@ -1,7 +1,7 @@
-package intg;
+package com.mmaozi.intg;
 
 
-import com.mmaozi.example.MyApp;
+import com.mmaozi.intg.example.MyApp;
 import com.mmaozi.resti.RestiApplication;
 import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;

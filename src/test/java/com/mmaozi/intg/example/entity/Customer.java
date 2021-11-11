@@ -1,16 +1,14 @@
-package com.mmaozi.example.entity;
+package com.mmaozi.intg.example.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor(staticName = "of")
-public class Order {
+public class Customer {
 
-    private int orderId;
-    private LocalDateTime orderTime;
+    private int customerId;
+    private String name;
 }

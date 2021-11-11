@@ -1,4 +1,4 @@
-package com.mmaozi.example;
+package com.mmaozi.intg.example;
 
 import com.mmaozi.resti.RestiApplication;
 

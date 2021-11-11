@@ -1,4 +1,4 @@
-package com.mmaozi.example.entity;
+package com.mmaozi.intg.example.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

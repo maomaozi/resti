@@ -1,4 +1,4 @@
-package intg;
+package com.mmaozi.intg;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;

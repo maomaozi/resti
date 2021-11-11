@@ -1,6 +1,6 @@
-package com.mmaozi.example.service;
+package com.mmaozi.intg.example.service;
 
-import com.mmaozi.example.entity.OrderItem;
+import com.mmaozi.intg.example.entity.OrderItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,7 +1,7 @@
-package com.mmaozi.example.resource;
+package com.mmaozi.intg.example.resource;
 
-import com.mmaozi.example.entity.Customer;
-import com.mmaozi.example.service.CustomerService;
+import com.mmaozi.intg.example.entity.Customer;
+import com.mmaozi.intg.example.service.CustomerService;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;

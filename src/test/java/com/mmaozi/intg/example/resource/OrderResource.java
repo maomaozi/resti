@@ -1,7 +1,7 @@
-package com.mmaozi.example.resource;
+package com.mmaozi.intg.example.resource;
 
-import com.mmaozi.example.entity.Order;
-import com.mmaozi.example.service.ItemService;
+import com.mmaozi.intg.example.entity.Order;
+import com.mmaozi.intg.example.service.ItemService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 

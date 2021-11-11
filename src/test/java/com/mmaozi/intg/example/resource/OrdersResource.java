@@ -1,7 +1,7 @@
-package com.mmaozi.example.resource;
+package com.mmaozi.intg.example.resource;
 
-import com.mmaozi.example.entity.Order;
-import com.mmaozi.example.service.OrderService;
+import com.mmaozi.intg.example.entity.Order;
+import com.mmaozi.intg.example.service.OrderService;
 
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
