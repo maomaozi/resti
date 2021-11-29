@@ -27,7 +27,7 @@ public class RouteTest extends BaseTest {
 
     @Test
     void should_return_200_while_path_query_complex_nested_route() {
-        String s = given()
+        given()
                 .get("/customers/123/orders/1")
                 .then()
                 .statusCode(200)
@@ -37,7 +37,7 @@ public class RouteTest extends BaseTest {
 
     @Test
     void should_return_500_while_internal_error() {
-        String s = given()
+        given()
                 .get("/customers/123/orders/a/items")
                 .then()
                 .statusCode(500)
