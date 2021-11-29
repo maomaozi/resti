@@ -17,7 +17,7 @@ public class RouteTest extends BaseTest {
 
     @Test
     void should_return_200_while_path_query_example_customer() {
-        String s = given()
+        given()
                 .get("/customers/123")
                 .then()
                 .statusCode(200)
